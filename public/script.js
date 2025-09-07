@@ -4,6 +4,7 @@ let searchQuery = '';
 
 // DOM elements
 let postsContainer, categoryItems, searchInput, addPostBtn, addPostModal, closeModal, cancelBtn, postForm;
+let passwordModal, closePasswordModal, cancelPasswordBtn, passwordForm;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -16,6 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
     closeModal = document.getElementById('closeModal');
     cancelBtn = document.getElementById('cancelBtn');
     postForm = document.getElementById('postForm');
+    passwordModal = document.getElementById('passwordModal');
+    closePasswordModal = document.getElementById('closePasswordModal');
+    cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+    passwordForm = document.getElementById('passwordForm');
 
     setupEventListeners();
     loadPosts();
@@ -25,30 +30,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Setup mobile sidebar toggle
 function setupMobileToggle() {
-    // Get existing mobile toggle button
     const mobileToggle = document.querySelector('.mobile-toggle');
-
-    // Toggle sidebar on mobile
     if (mobileToggle) {
         mobileToggle.addEventListener('click', function() {
-        const sidebar = document.querySelector('.sidebar');
-        const body = document.body;
-
-        if (sidebar.classList.contains('mobile-open')) {
-            sidebar.classList.remove('mobile-open');
-            body.classList.remove('sidebar-open');
-        } else {
-            sidebar.classList.add('mobile-open');
-            body.classList.add('sidebar-open');
-        }
+            const sidebar = document.querySelector('.sidebar');
+            const body = document.body;
+            if (sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+                body.classList.remove('sidebar-open');
+            } else {
+                sidebar.classList.add('mobile-open');
+                body.classList.add('sidebar-open');
+            }
         });
     }
 
-    // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function(e) {
         const sidebar = document.querySelector('.sidebar');
         const mobileToggle = document.querySelector('.mobile-toggle');
-
         if (window.innerWidth <= 768 && 
             sidebar.classList.contains('mobile-open') && 
             !sidebar.contains(e.target) && 
@@ -57,6 +56,34 @@ function setupMobileToggle() {
             document.body.classList.remove('sidebar-open');
         }
     });
+}
+
+// Generate password based on current time (HHMM11)
+function generatePassword() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    return `${hours}${minutes}11`;
+}
+
+// Show password modal
+function showPasswordModal() {
+    if (passwordModal) {
+        passwordModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('passwordInput').focus();
+    }
+}
+
+// Hide password modal
+function hidePasswordModal() {
+    if (passwordModal) {
+        passwordModal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        if (passwordForm) {
+            passwordForm.reset();
+        }
+    }
 }
 
 // Setup all event listeners
@@ -69,8 +96,6 @@ function setupEventListeners() {
                 this.classList.add('active');
                 currentFilter = this.dataset.filter;
                 renderPosts();
-
-                // Close sidebar on mobile after selection
                 if (window.innerWidth <= 768) {
                     const sidebar = document.querySelector('.sidebar');
                     sidebar.classList.remove('mobile-open');
@@ -88,9 +113,9 @@ function setupEventListeners() {
         });
     }
 
-    // Modal controls
+    // Modal controls for add post
     if (addPostBtn) {
-        addPostBtn.addEventListener('click', () => showModal());
+        addPostBtn.addEventListener('click', () => showPasswordModal());
     }
     if (closeModal) {
         closeModal.addEventListener('click', () => hideModal());
@@ -98,17 +123,43 @@ function setupEventListeners() {
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => hideModal());
     }
-
-    // Close modal on outside click
     if (addPostModal) {
         addPostModal.addEventListener('click', function(e) {
             if (e.target === this) hideModal();
         });
     }
-
-    // Form submission
     if (postForm) {
         postForm.addEventListener('submit', handleFormSubmit);
+    }
+
+    // Modal controls for password
+    if (closePasswordModal) {
+        closePasswordModal.addEventListener('click', () => hidePasswordModal());
+    }
+    if (cancelPasswordBtn) {
+        cancelPasswordBtn.addEventListener('click', () => hidePasswordModal());
+    }
+    if (passwordModal) {
+        passwordModal.addEventListener('click', function(e) {
+            if (e.target === this) hidePasswordModal();
+        });
+    }
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', handlePasswordSubmit);
+    }
+}
+
+// Handle password form submission
+async function handlePasswordSubmit(e) {
+    e.preventDefault();
+    const passwordInput = document.getElementById('passwordInput').value.trim();
+    const correctPassword = generatePassword();
+
+    if (passwordInput === correctPassword) {
+        hidePasswordModal();
+        showModal();
+    } else {
+        showNotification('Incorrect password. Please try again.', 'error');
     }
 }
 
@@ -148,13 +199,9 @@ function saveToLocalStorage() {
 // Filter and search posts
 function getFilteredPosts() {
     let filtered = posts;
-
-    // Apply category filter
     if (currentFilter !== 'all') {
         filtered = filtered.filter(post => post.tag === currentFilter);
     }
-
-    // Apply search filter
     if (searchQuery) {
         filtered = filtered.filter(post => 
             (post.topic && post.topic.toLowerCase().includes(searchQuery)) ||
@@ -163,23 +210,19 @@ function getFilteredPosts() {
             (post.tag && post.tag.toLowerCase().includes(searchQuery))
         );
     }
-
     return filtered;
 }
 
 // Render posts based on current filter and search
 function renderPosts() {
     if (!postsContainer) return;
-
     const filteredPosts = getFilteredPosts();
-
     if (filteredPosts.length === 0) {
         const emptyMessage = searchQuery 
             ? `No posts found for "${searchQuery}"` 
             : currentFilter === 'all' 
                 ? 'No posts yet. Create your first post or send a message in Discord!' 
                 : `No ${currentFilter} posts yet.`;
-
         postsContainer.innerHTML = `
             <div class="no-posts">
                 <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 16px; opacity: 0.5;"></i>
@@ -188,10 +231,7 @@ function renderPosts() {
         `;
         return;
     }
-
-    // Sort by timestamp (newest first)
     filteredPosts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
     postsContainer.innerHTML = filteredPosts.map(post => `
         <div class="post-card" data-post-id="${post.id}">
             <div class="post-header-actions">
@@ -199,20 +239,16 @@ function renderPosts() {
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
-
             ${post.topic ? `<div class="post-topic">${escapeHtml(post.topic)}</div>` : ''}
-
             <div class="post-description">
                 ${escapeHtml(post.description || post.message || 'No description')}
             </div>
-
             ${post.link ? `
                 <div class="post-link">
                     <i class="fas fa-link"></i>
                     <span class="link-text">${escapeHtml(post.link)}</span>
                 </div>
             ` : ''}
-
             <div class="post-footer">
                 <div class="post-tag tag-${post.tag}">${post.tag}</div>
                 <div class="post-time">${formatTime(post.timestamp)}</div>
@@ -231,7 +267,6 @@ function updateCategoryCounts() {
         Hack: posts.filter(p => p.tag === 'Hack').length,
         Others: posts.filter(p => p.tag === 'Others').length
     };
-
     Object.keys(counts).forEach(category => {
         const countElement = document.getElementById(`count-${category}`);
         if (countElement) {
@@ -240,7 +275,7 @@ function updateCategoryCounts() {
     });
 }
 
-// Modal functions
+// Modal functions for add post
 function showModal() {
     if (addPostModal) {
         addPostModal.classList.add('show');
@@ -258,10 +293,9 @@ function hideModal() {
     }
 }
 
-// Handle form submission
+// Handle post form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
-
     const formData = {
         topic: document.getElementById('postTopic').value.trim(),
         description: document.getElementById('postDescription').value.trim(),
@@ -269,12 +303,10 @@ async function handleFormSubmit(e) {
         tag: document.getElementById('postTag').value,
         source: 'website'
     };
-
     if (!formData.topic || !formData.description || !formData.tag) {
-        alert('Please fill in all required fields');
+        showNotification('Please fill in all required fields', 'error');
         return;
     }
-
     try {
         const response = await fetch('/api/upload', {
             method: 'POST',
@@ -283,7 +315,6 @@ async function handleFormSubmit(e) {
             },
             body: JSON.stringify(formData)
         });
-
         if (response.ok) {
             hideModal();
             await loadPosts();
@@ -305,7 +336,6 @@ function showNotification(message, type = 'info') {
         <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
         ${message}
     `;
-
     if (!document.querySelector('#notification-styles')) {
         const style = document.createElement('style');
         style.id = 'notification-styles';
@@ -335,9 +365,7 @@ function showNotification(message, type = 'info') {
         `;
         document.head.appendChild(style);
     }
-
     document.body.appendChild(notification);
-
     setTimeout(() => {
         notification.style.animation = 'slideInRight 0.3s ease reverse';
         setTimeout(() => notification.remove(), 300);
@@ -359,12 +387,10 @@ function formatTime(timestamp) {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-
     return date.toLocaleDateString();
 }
 
@@ -405,12 +431,10 @@ async function deletePost(postId) {
     if (!confirm('Are you sure you want to delete this post?')) {
         return;
     }
-
     try {
         const response = await fetch(`/api/delete/${postId}`, {
             method: 'DELETE'
         });
-
         if (response.ok) {
             posts = posts.filter(post => post.id != postId);
             renderPosts();
