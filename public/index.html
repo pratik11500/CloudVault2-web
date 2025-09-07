@@ -89,7 +89,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Create New Post</h2>
-                    </button>
+                    <button class="close-btn" id="closeModal"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="postForm">
                     <div class="form-group">
@@ -140,12 +140,12 @@
             </div>
         </div>
 
-        <!-- Password Prompt Modal -->
+        <!-- Password Prompt Modal for Create -->
         <div class="modal" id="passwordModal">
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Enter Password to <span id="passwordAction">Create Post</span></h2>
-                    </button>
+                    <button class="close-btn" id="closePasswordModal"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="passwordForm">
                     <div class="form-group">
@@ -158,6 +158,34 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="cancel-btn" id="cancelPasswordBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="submit-btn">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Password Prompt Modal for Delete -->
+        <div class="modal" id="deletePasswordModal">
+            <div class="modal-content2">
+                <div class="modal-header">
+                    <h2>Enter Password to <span id="deletePasswordAction">Delete Post</span></h2>
+                    <button class="close-btn" id="closeDeletePasswordModal"><i class="fas fa-times"></i></button>
+                </div>
+                <form id="deletePasswordForm">
+                    <div class="form-group">
+                        <input
+                            type="text"
+                            id="deletePasswordInput"
+                            required
+                            placeholder="Enter password..."
+                        />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancelDeletePasswordBtn">
                             Cancel
                         </button>
                         <button type="submit" class="submit-btn">
