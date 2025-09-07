@@ -243,7 +243,7 @@ body {
     transform: translateY(-2px);
 }
 
-#passwordAction {
+#passwordAction, #deletePasswordAction {
     color: var(--accent-green);
     font-weight: 600;
 }
@@ -451,7 +451,7 @@ body {
     justify-content: center;
 }
 
-.modal-content {
+.modal-content, .modal-content2 {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -460,6 +460,10 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     animation: slideIn 0.3s ease;
+}
+
+.modal-content2 {
+    border-left: 4px solid #ff6b6b; /* Red border for delete modal */
 }
 
 @keyframes slideIn {
@@ -691,7 +695,7 @@ form {
         font-size: 1.1rem;
     }
     
-    .modal-content {
+    .modal-content, .modal-content2 {
         width: 95%;
         margin: 16px;
         max-height: 85vh;
@@ -753,7 +757,7 @@ form {
         align-items: flex-start;
     }
     
-    .modal-content {
+    .modal-content, .modal-content2 {
         width: 98%;
         margin: 8px;
         border-radius: 8px;
