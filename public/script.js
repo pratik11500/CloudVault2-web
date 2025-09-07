@@ -95,12 +95,13 @@ function showPasswordModal(action, postId = null) {
         document.getElementById('deletePasswordInput').focus();
     } else {
         console.error(`Failed to show ${action} modal: elements not found`);
+        showNotification(`Error: Failed to show ${action} modal`, 'error');
     }
 }
 
 // Hide password modals
 function hidePasswordModal() {
-    console.log('Hiding password modals');
+    console.log(`Hiding password modals, currentPostId: ${currentPostId}`);
     if (passwordModal) {
         passwordModal.classList.remove('show');
         if (passwordForm) {
@@ -115,7 +116,7 @@ function hidePasswordModal() {
     }
     document.body.style.overflow = 'auto';
     currentAction = 'create'; // Reset to default
-    currentPostId = null;
+    // Do not reset currentPostId here to ensure it persists for deletion
 }
 
 // Setup all event listeners
@@ -197,6 +198,24 @@ function setupEventListeners() {
     if (deletePasswordForm) {
         deletePasswordForm.addEventListener('submit', handleDeletePasswordSubmit);
     }
+
+    // Delegated event listener for delete buttons
+    if (postsContainer) {
+        postsContainer.addEventListener('click', function(e) {
+            const deleteBtn = e.target.closest('.delete-btn');
+            if (deleteBtn) {
+                const postCard = deleteBtn.closest('.post-card');
+                const postId = postCard ? postCard.dataset.postId : null;
+                console.log(`Delete button clicked, postId: ${postId}`);
+                if (postId) {
+                    showPasswordModal('delete', postId);
+                } else {
+                    console.error('No postId found for delete button');
+                    showNotification('Error: No post selected for deletion.', 'error');
+                }
+            }
+        });
+    }
 }
 
 // Handle password form submission for create
@@ -219,16 +238,18 @@ async function handleDeletePasswordSubmit(e) {
     e.preventDefault();
     const passwordInput = document.getElementById('deletePasswordInput').value.trim();
     const correctPassword = generatePassword();
-    console.log(`Delete password submitted: ${passwordInput}, expected: ${correctPassword}`);
+    console.log(`Delete password submitted: ${passwordInput}, expected: ${correctPassword}, postId: ${currentPostId}`);
 
     if (passwordInput === correctPassword) {
-        console.log(`Attempting to delete post with ID: ${currentPostId}`);
-        hidePasswordModal();
         if (currentPostId) {
+            console.log(`Proceeding to delete post with ID: ${currentPostId}`);
+            hidePasswordModal();
             await deletePost(currentPostId);
+            currentPostId = null; // Reset after deletion
         } else {
             console.error('No post ID set for deletion');
             showNotification('Error: No post selected for deletion.', 'error');
+            hidePasswordModal();
         }
     } else {
         showNotification('Incorrect password. Please try again.', 'error');
@@ -316,7 +337,7 @@ function renderPosts() {
     postsContainer.innerHTML = filteredPosts.map(post => `
         <div class="post-card" data-post-id="${post.id}">
             <div class="post-header-actions">
-                <button class="delete-btn" onclick="showPasswordModal('delete', '${post.id}')">
+                <button class="delete-btn">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
