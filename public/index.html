@@ -3,9 +3,9 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Cloudxvault v2</title>
+        <title>Cloudxvault</title>
         <link rel="stylesheet" href="styles.css" />
-        <link
+     <link
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
             rel="stylesheet"
         />
@@ -15,7 +15,7 @@
             <!-- Left Sidebar -->
             <nav class="sidebar">
                 <div class="sidebar-header">
-                    <h2>Cloudxvault <span id="version-glitch">v2</span></h2>
+                    <h2>Cloudxvault <span id="version-glitch" data-text="v2">v2</span></h2>
                 </div>
 
                 <div class="nav-section">
@@ -49,6 +49,9 @@
                         <span class="count" id="count-Others">0</span>
                     </div>
                 </div>
+                <a href="https://xpratik.vercel.app" class="creator-toggle" target="_blank">
+                    Made by Pratik <img src="/logo.png" alt="Pratik Icon" style="height: 25px; width: auto; margin-left: 1px;">
+                </a>
             </nav>
 
             <!-- Main Content -->
@@ -86,6 +89,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Create New Post</h2>
+                    <button class="close-btn" id="closeModal">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <form id="postForm">
@@ -142,6 +147,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Enter Password</h2>
+                    <button class="close-btn" id="closePasswordModal">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <form id="passwordForm">
