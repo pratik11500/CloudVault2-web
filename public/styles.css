@@ -375,7 +375,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 400px;
     max-height: 90vh;
     overflow-y: auto;
     animation: slideIn 0.3s ease;
@@ -394,7 +394,7 @@ body {
 
 .modal-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     padding: 24px 24px 16px;
     border-bottom: 1px solid var(--border-color);
@@ -469,7 +469,7 @@ form {
 .form-actions {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: center;
     margin-top: 24px;
 }
 
