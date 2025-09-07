@@ -473,53 +473,64 @@ body {
     }
 }
 
-..modal-content, .modal-content2 {
-    background: var(--bg-secondary);
-    padding: 20px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 8px 32px var(--shadow);
-    position: relative;
+.modal-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.modal-content2 {
-    border-left: 4px solid #ff6b6b; /* Red border for delete modal */
-}
-
-.close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-muted);
-}
-
-.close:hover {
+.modal-header h2 {
     color: var(--text-primary);
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 8px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
     width: 100%;
-    padding: 8px;
-    background: var(--bg-primary);
+    padding: 12px;
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    border-radius: 4px;
+    border-radius: 8px;
     color: var(--text-primary);
+    font-size: 14px;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
     outline: none;
+    border-color: var(--accent-green);
 }
 
 .form-group textarea {
@@ -527,41 +538,51 @@ body {
     resize: vertical;
 }
 
-.form-group .required {
-    color: #ff6b6b;
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+}
+
+form {
+    padding: 24px;
 }
 
 .form-actions {
     display: flex;
-    gap: 10px;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
 }
 
-.form-actions button {
-    padding: 10px 20px;
+.cancel-btn,
+.submit-btn {
+    padding: 12px 20px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
-.form-actions button[type="submit"] {
+.cancel-btn {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.cancel-btn:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+.submit-btn {
     background: var(--accent-green);
     color: var(--bg-primary);
 }
 
-.form-actions button[type="submit"]:hover {
+.submit-btn:hover {
     background: var(--accent-green-hover);
 }
-
-.form-actions button[type="button"] {
-    background: #ff6b6b;
-    color: var(--bg-primary);
-}
-
-.form-actions button[type="button"]:hover {
-    background: #e55a5a;
-}
-
 
 /* Mobile Toggle Button */
 .mobile-toggle {
