@@ -139,6 +139,37 @@
             </div>
         </div>
 
+        <!-- Password Prompt Modal -->
+        <div class="modal" id="passwordModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Enter Password</h2>
+                    <button class="close-btn" id="closePasswordModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="passwordInput">Password (format: HHMM11, e.g., 1911 for 19:00)</label>
+                        <input
+                            type="text"
+                            id="passwordInput"
+                            required
+                            placeholder="Enter password..."
+                        />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancelPasswordBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="submit-btn">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <script src="script.js"></script>
     </body>
 </html>
