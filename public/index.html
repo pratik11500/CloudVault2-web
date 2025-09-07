@@ -140,42 +140,33 @@
             </div>
         </div>
 
-
-        <!-- Password Modal for Create -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <span id="closePasswordModal" class="close">&times;</span>
-            <h2 id="passwordAction">Create Post</h2>
-            <form id="passwordForm">
-                <div class="form-group">
-                    <label for="passwordInput">Enter Password <span class="required">*</span></label>
-                    <input type="password" id="passwordInput" required>
+        <!-- Password Prompt Modal -->
+        <div class="modal" id="passwordModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Enter Password to <span id="passwordAction">Create Post</span></h2>
+                    </button>
                 </div>
-                <div class="form-actions">
-                    <button type="submit">Submit</button>
-                    <button type="button" id="cancelPasswordBtn">Cancel</button>
-                </div>
-            </form>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <input
+                            type="text"
+                            id="passwordInput"
+                            required
+                            placeholder="Enter password..."
+                        />
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="cancel-btn" id="cancelPasswordBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="submit-btn">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-
-    <!-- Password Modal for Delete -->
-    <div id="deletePasswordModal" class="modal">
-        <div class="modal-content2">
-            <span id="closeDeletePasswordModal" class="close">&times;</span>
-            <h2 id="deletePasswordAction">Delete Post</h2>
-            <form id="deletePasswordForm">
-                <div class="form-group">
-                    <label for="deletePasswordInput">Enter Password <span class="required">*</span></label>
-                    <input type="password" id="deletePasswordInput" required>
-                </div>
-                <div class="form-actions">
-                    <button type="submit">Submit</button>
-                    <button type="button" id="cancelDeletePasswordBtn">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
         <script src="script.js"></script>
     </body>
