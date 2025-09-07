@@ -1,5 +1,4 @@
-        
-        * {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -242,6 +241,11 @@ body {
 .creator-toggle:hover {
     background: #4a4a4a;
     transform: translateY(-2px);
+}
+
+#passwordAction {
+    color: var(--accent-green);
+    font-weight: 600;
 }
 
 /* Main Content */
@@ -790,4 +794,3 @@ form {
         height: 20px;
     }
 }
-        
