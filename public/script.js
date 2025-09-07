@@ -7,6 +7,7 @@ let currentPostId = null; // Stores post ID for deletion
 // DOM elements
 let postsContainer, categoryItems, searchInput, addPostBtn, addPostModal, closeModal, cancelBtn, postForm;
 let passwordModal, closePasswordModal, cancelPasswordBtn, passwordForm, passwordAction;
+let deletePasswordModal, closeDeletePasswordModal, cancelDeletePasswordBtn, deletePasswordForm, deletePasswordAction;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,6 +25,11 @@ document.addEventListener('DOMContentLoaded', function() {
     cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
     passwordForm = document.getElementById('passwordForm');
     passwordAction = document.getElementById('passwordAction');
+    deletePasswordModal = document.getElementById('deletePasswordModal');
+    closeDeletePasswordModal = document.getElementById('closeDeletePasswordModal');
+    cancelDeletePasswordBtn = document.getElementById('cancelDeletePasswordBtn');
+    deletePasswordForm = document.getElementById('deletePasswordForm');
+    deletePasswordAction = document.getElementById('deletePasswordAction');
 
     setupEventListeners();
     loadPosts();
@@ -73,27 +79,38 @@ function generatePassword() {
 
 // Show password modal with action
 function showPasswordModal(action, postId = null) {
-    if (passwordModal && passwordAction) {
-        currentAction = action;
-        currentPostId = postId;
-        passwordAction.textContent = action === 'create' ? 'Create Post' : 'Delete Post';
+    currentAction = action;
+    currentPostId = postId;
+    if (action === 'create' && passwordModal && passwordAction) {
+        passwordAction.textContent = 'Create Post';
         passwordModal.classList.add('show');
         document.body.style.overflow = 'hidden';
         document.getElementById('passwordInput').focus();
+    } else if (action === 'delete' && deletePasswordModal && deletePasswordAction) {
+        deletePasswordAction.textContent = 'Delete Post';
+        deletePasswordModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('deletePasswordInput').focus();
     }
 }
 
-// Hide password modal
+// Hide password modals
 function hidePasswordModal() {
     if (passwordModal) {
         passwordModal.classList.remove('show');
-        document.body.style.overflow = 'auto';
         if (passwordForm) {
             passwordForm.reset();
         }
-        currentAction = 'create'; // Reset to default
-        currentPostId = null;
     }
+    if (deletePasswordModal) {
+        deletePasswordModal.classList.remove('show');
+        if (deletePasswordForm) {
+            deletePasswordForm.reset();
+        }
+    }
+    document.body.style.overflow = 'auto';
+    currentAction = 'create'; // Reset to default
+    currentPostId = null;
 }
 
 // Setup all event listeners
@@ -142,7 +159,7 @@ function setupEventListeners() {
         postForm.addEventListener('submit', handleFormSubmit);
     }
 
-    // Modal controls for password
+    // Modal controls for create password
     if (closePasswordModal) {
         closePasswordModal.addEventListener('click', () => hidePasswordModal());
     }
@@ -157,9 +174,25 @@ function setupEventListeners() {
     if (passwordForm) {
         passwordForm.addEventListener('submit', handlePasswordSubmit);
     }
+
+    // Modal controls for delete password
+    if (closeDeletePasswordModal) {
+        closeDeletePasswordModal.addEventListener('click', () => hidePasswordModal());
+    }
+    if (cancelDeletePasswordBtn) {
+        cancelDeletePasswordBtn.addEventListener('click', () => hidePasswordModal());
+    }
+    if (deletePasswordModal) {
+        deletePasswordModal.addEventListener('click', function(e) {
+            if (e.target === this) hidePasswordModal();
+        });
+    }
+    if (deletePasswordForm) {
+        deletePasswordForm.addEventListener('submit', handleDeletePasswordSubmit);
+    }
 }
 
-// Handle password form submission
+// Handle password form submission for create
 async function handlePasswordSubmit(e) {
     e.preventDefault();
     const passwordInput = document.getElementById('passwordInput').value.trim();
@@ -167,9 +200,21 @@ async function handlePasswordSubmit(e) {
 
     if (passwordInput === correctPassword) {
         hidePasswordModal();
-        if (currentAction === 'create') {
-            showModal();
-        } else if (currentAction === 'delete' && currentPostId) {
+        showModal();
+    } else {
+        showNotification('Incorrect password. Please try again.', 'error');
+    }
+}
+
+// Handle password form submission for delete
+async function handleDeletePasswordSubmit(e) {
+    e.preventDefault();
+    const passwordInput = document.getElementById('deletePasswordInput').value.trim();
+    const correctPassword = generatePassword();
+
+    if (passwordInput === correctPassword) {
+        hidePasswordModal();
+        if (currentPostId) {
             await deletePost(currentPostId);
         }
     } else {
