@@ -58,12 +58,15 @@ function setupMobileToggle() {
     });
 }
 
-// Generate password based on current time (HHMM11)
+// Generate password based on current time ([HH+1]MM1)
 function generatePassword() {
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
+    let hours = now.getHours();
     const minutes = now.getMinutes().toString().padStart(2, '0');
-    return `${hours}${minutes}11`;
+    // Add 1 to hours and handle the case where hours become 24
+    hours = (hours + 1) % 24; // Use modulo to wrap around to 0 if hours is 24
+    const hoursStr = hours.toString().padStart(2, '0');
+    return `${hoursStr}${minutes}1`;
 }
 
 // Show password modal
