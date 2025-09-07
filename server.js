@@ -1,40 +1,43 @@
-const express = require('express');
-const path = require('path');
-const axios = require('axios');
-const { Pool } = require('pg');
-const app = express();
-const PORT = process.env.PORT || 5000;
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://your-vercel-app.vercel.app';
+// Import required dependencies for the server
+const express = require('express'); // Web framework for Node.js
+const path = require('path'); // Utility for handling file paths
+const axios = require('axios'); // HTTP client for Discord API calls
+const { Pool } = require('pg'); // PostgreSQL client for database storage
 
-// Initialize PostgreSQL pool
+// Initialize Express app
+const app = express();
+const PORT = process.env.PORT || 5000; // Vercel assigns PORT dynamically
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://your-vercel-app.vercel.app'; // Vercel domain for CORS
+
+// Initialize PostgreSQL connection pool for persistent storage
 const pool = process.env.DATABASE_URL ? new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
+    ssl: { rejectUnauthorized: false } // Required for Vercel/Render PostgreSQL
 }) : null;
 
-// Queue system for Discord operations
+// Queue for Discord operations to handle rate limits and ensure reliable sending
 const discordQueue = [];
 let isProcessingQueue = false;
 
-// Middleware
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// Middleware setup
+app.use(express.json()); // Parse JSON request bodies from client requests
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files (index.html, script.js, styles.css)
 
-// CORS configuration
+// CORS configuration to allow requests from the frontend
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+    res.header('Access-Control-Allow-Origin', ALLOWED_ORIGIN); // Restrict to Vercel domain
     res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
+        return res.sendStatus(200); // Handle CORS preflight requests
     }
     next();
 });
 
-// In-memory storage (fallback if no database)
+// In-memory storage for messages, synced with PostgreSQL
 let messages = [];
 
-// Load messages from database
+// Load messages from PostgreSQL on startup
 async function loadMessages() {
     if (!pool) {
         console.error('❌ DATABASE_URL not set; cannot load messages (Vercel filesystem is read-only)');
@@ -51,7 +54,7 @@ async function loadMessages() {
     }
 }
 
-// Save a single message to database
+// Save a single message to PostgreSQL
 async function saveMessage(post) {
     if (!pool) {
         console.error('❌ DATABASE_URL not set; cannot save message (Vercel filesystem is read-only)');
@@ -68,7 +71,11 @@ async function saveMessage(post) {
     }
 }
 
-// Discord configuration
+// Discord channel configuration
+// REPLACE THESE IDs with the correct text channel IDs from your Discord server
+// Find channels under category ID 1395377920557711421, right-click each channel, and select "Copy ID"
+// Copy IDs from main.py (Render) if Discord-to-website syncing works
+// Ensure the bot has "View Channels" and "Send Messages" permissions for each channel
 const CATEGORY_CHANNELS = {
     'Entertainment': 1413856614510755880,
     'Education': 1413881799322636319,
@@ -77,27 +84,31 @@ const CATEGORY_CHANNELS = {
     'Others': 1413881920248615143
 };
 
-// Send post to Discord
+// Send post to Discord channel via API
 async function sendToDiscordChannel(postData) {
     const { topic, description, link, tag } = postData;
     const channelId = CATEGORY_CHANNELS[tag];
     
+    // Validate channel ID
     if (!channelId) {
         console.error(`❌ No Discord channel configured for category: ${tag}`);
         return false;
     }
 
+    // Validate Discord token
     const discordToken = process.env.DISCORD_TOKEN;
     if (!discordToken) {
         console.error('❌ DISCORD_TOKEN environment variable is not set');
         return false;
     }
 
+    // Format message content for Discord
     let messageContent = `# ${topic}\n> ${description}`;
     if (link && link.trim()) {
         messageContent += `\n${link}`;
     }
 
+    // Retry logic for Discord API rate limits
     const maxRetries = 3;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
@@ -128,6 +139,8 @@ async function sendToDiscordChannel(postData) {
                 console.error('❌ Invalid DISCORD_TOKEN');
             } else if (error.response?.status === 403) {
                 console.error(`❌ Bot lacks permissions to send messages to channel ${channelId}`);
+            } else if (error.response?.data?.code === 10003) {
+                console.error(`❌ Channel ${channelId} does not exist or is inaccessible`);
             }
             return false;
         }
@@ -135,7 +148,7 @@ async function sendToDiscordChannel(postData) {
     return false;
 }
 
-// Queue processing
+// Process Discord queue to send posts
 async function processDiscordQueue() {
     if (isProcessingQueue || discordQueue.length === 0) {
         console.log(`Queue processing skipped: isProcessing=${isProcessingQueue}, queueLength=${discordQueue.length}`);
@@ -153,7 +166,7 @@ async function processDiscordQueue() {
             if (!success) {
                 console.error(`Failed to send post to Discord: [${postData.tag}] ${postData.topic || postData.description}`);
             }
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Avoid rate limits
         } catch (error) {
             console.error('Error processing Discord queue item:', error.message);
         }
@@ -163,26 +176,30 @@ async function processDiscordQueue() {
     console.log('Discord queue processing completed');
 }
 
-// Load messages on startup
+// Load messages on server startup
 loadMessages();
 
 // API Routes
+// Get all messages for the frontend
 app.get('/api/messages', async (req, res) => {
     console.log(`GET /api/messages: Returning ${messages.length} messages`);
     await loadMessages();
     res.json(messages);
 });
 
+// Handle new post submission (from Discord bot or website)
 app.post('/api/upload', async (req, res) => {
     try {
         const { topic, description, message, link, tag, source } = req.body;
         console.log('POST /api/upload received:', { topic, description, message, link, tag, source });
 
+        // Validate request
         if (!tag || (!description && !message)) {
             console.error('Invalid request: Tag and description/message are required');
             return res.status(400).json({ error: 'Tag and description/message are required' });
         }
 
+        // Create new post object
         const newPost = {
             topic: topic || '',
             description: description || message || '',
@@ -194,16 +211,19 @@ app.post('/api/upload', async (req, res) => {
             id: Date.now() + Math.random()
         };
 
+        // Add to in-memory messages
         messages.unshift(newPost);
         if (messages.length > 100) {
-            messages = messages.slice(0, 100);
+            messages = messages.slice(0, 100); // Limit to 100 messages
         }
 
+        // Save to PostgreSQL
         await saveMessage(newPost);
         
         const logMessage = topic ? `[${tag}] ${topic}` : `[${tag}] ${description || message}`;
         console.log(`New post added: ${logMessage}`);
 
+        // Queue website posts for Discord
         if (source === 'website') {
             console.log(`Adding website post to Discord queue: ${logMessage}`);
             discordQueue.push(newPost);
@@ -219,11 +239,13 @@ app.post('/api/upload', async (req, res) => {
     }
 });
 
+// Serve the frontend
 app.get('/', (req, res) => {
     console.log('Serving index.html');
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Delete a post
 app.delete('/api/delete/:postId', async (req, res) => {
     try {
         const postId = req.params.postId;
@@ -254,10 +276,11 @@ app.delete('/api/delete/:postId', async (req, res) => {
     }
 });
 
+// Health check endpoint for monitoring
 app.get('/health', (req, res) => {
     console.log('Health check requested');
     res.json({ status: 'OK', messages: messages.length });
 });
 
-// Export for Vercel serverless
+// Export for Vercel serverless functions
 module.exports = app;
