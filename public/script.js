@@ -74,6 +74,7 @@ function generatePassword() {
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const timeNumber = parseInt(`${hours}${minutes}`, 10);
     const password = (timeNumber + 11).toString().padStart(4, '0');
+    console.log(`Generated password: ${password} (Time: ${hours}:${minutes})`);
     return password;
 }
 
@@ -81,6 +82,7 @@ function generatePassword() {
 function showPasswordModal(action, postId = null) {
     currentAction = action;
     currentPostId = postId;
+    console.log(`Showing ${action} password modal, postId: ${postId}`);
     if (action === 'create' && passwordModal && passwordAction) {
         passwordAction.textContent = 'Create Post';
         passwordModal.classList.add('show');
@@ -91,11 +93,14 @@ function showPasswordModal(action, postId = null) {
         deletePasswordModal.classList.add('show');
         document.body.style.overflow = 'hidden';
         document.getElementById('deletePasswordInput').focus();
+    } else {
+        console.error(`Failed to show ${action} modal: elements not found`);
     }
 }
 
 // Hide password modals
 function hidePasswordModal() {
+    console.log('Hiding password modals');
     if (passwordModal) {
         passwordModal.classList.remove('show');
         if (passwordForm) {
@@ -122,6 +127,7 @@ function setupEventListeners() {
                 categoryItems.forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
                 currentFilter = this.dataset.filter;
+                console.log(`Filter changed to: ${currentFilter}`);
                 renderPosts();
                 if (window.innerWidth <= 768) {
                     const sidebar = document.querySelector('.sidebar');
@@ -136,6 +142,7 @@ function setupEventListeners() {
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             searchQuery = this.value.toLowerCase();
+            console.log(`Search query: ${searchQuery}`);
             renderPosts();
         });
     }
@@ -197,6 +204,7 @@ async function handlePasswordSubmit(e) {
     e.preventDefault();
     const passwordInput = document.getElementById('passwordInput').value.trim();
     const correctPassword = generatePassword();
+    console.log(`Create password submitted: ${passwordInput}, expected: ${correctPassword}`);
 
     if (passwordInput === correctPassword) {
         hidePasswordModal();
@@ -211,11 +219,16 @@ async function handleDeletePasswordSubmit(e) {
     e.preventDefault();
     const passwordInput = document.getElementById('deletePasswordInput').value.trim();
     const correctPassword = generatePassword();
+    console.log(`Delete password submitted: ${passwordInput}, expected: ${correctPassword}`);
 
     if (passwordInput === correctPassword) {
+        console.log(`Attempting to delete post with ID: ${currentPostId}`);
         hidePasswordModal();
         if (currentPostId) {
             await deletePost(currentPostId);
+        } else {
+            console.error('No post ID set for deletion');
+            showNotification('Error: No post selected for deletion.', 'error');
         }
     } else {
         showNotification('Incorrect password. Please try again.', 'error');
@@ -225,16 +238,19 @@ async function handleDeletePasswordSubmit(e) {
 // Load posts from API
 async function loadPosts() {
     try {
+        console.log('Fetching posts from /api/messages');
         const response = await fetch('/api/messages');
         if (response.ok) {
             posts = await response.json();
+            console.log(`Loaded ${posts.length} posts`);
             renderPosts();
             updateCategoryCounts();
         } else {
-            console.log('No posts yet or API not ready');
+            console.error(`Failed to fetch posts: ${response.status} ${response.statusText}`);
             renderPosts();
         }
     } catch (error) {
+        console.error('Error loading posts:', error);
         console.log('Loading from local storage...');
         loadFromLocalStorage();
         renderPosts();
@@ -247,11 +263,13 @@ function loadFromLocalStorage() {
     const stored = localStorage.getItem('discordMessages');
     if (stored) {
         posts = JSON.parse(stored);
+        console.log(`Loaded ${posts.length} posts from local storage`);
     }
 }
 
 // Save to local storage
 function saveToLocalStorage() {
+    console.log(`Saving ${posts.length} posts to local storage`);
     localStorage.setItem('discordMessages', JSON.stringify(posts));
 }
 
@@ -274,8 +292,12 @@ function getFilteredPosts() {
 
 // Render posts based on current filter and search
 function renderPosts() {
-    if (!postsContainer) return;
+    if (!postsContainer) {
+        console.error('Posts container not found');
+        return;
+    }
     const filteredPosts = getFilteredPosts();
+    console.log(`Rendering ${filteredPosts.length} filtered posts`);
     if (filteredPosts.length === 0) {
         const emptyMessage = searchQuery 
             ? `No posts found for "${searchQuery}"` 
@@ -332,6 +354,7 @@ function updateCategoryCounts() {
             countElement.textContent = counts[category];
         }
     });
+    console.log('Category counts updated:', counts);
 }
 
 // Modal functions for add post
@@ -339,6 +362,7 @@ function showModal() {
     if (addPostModal) {
         addPostModal.classList.add('show');
         document.body.style.overflow = 'hidden';
+        console.log('Add post modal shown');
     }
 }
 
@@ -349,6 +373,7 @@ function hideModal() {
         if (postForm) {
             postForm.reset();
         }
+        console.log('Add post modal hidden');
     }
 }
 
@@ -364,9 +389,11 @@ async function handleFormSubmit(e) {
     };
     if (!formData.topic || !formData.description || !formData.tag) {
         showNotification('Please fill in all required fields', 'error');
+        console.log('Form submission failed: missing required fields');
         return;
     }
     try {
+        console.log('Submitting post:', formData);
         const response = await fetch('/api/upload', {
             method: 'POST',
             headers: {
@@ -378,8 +405,9 @@ async function handleFormSubmit(e) {
             hideModal();
             await loadPosts();
             showNotification('Post created successfully!', 'success');
+            console.log('Post created successfully');
         } else {
-            throw new Error('Failed to create post');
+            throw new Error(`Failed to create post: ${response.status} ${response.statusText}`);
         }
     } catch (error) {
         console.error('Error creating post:', error);
@@ -425,6 +453,7 @@ function showNotification(message, type = 'info') {
         document.head.appendChild(style);
     }
     document.body.appendChild(notification);
+    console.log(`Showing notification: ${message} (${type})`);
     setTimeout(() => {
         notification.style.animation = 'slideInRight 0.3s ease reverse';
         setTimeout(() => notification.remove(), 300);
@@ -462,11 +491,13 @@ function startPolling() {
                 const newPosts = await response.json();
                 if (newPosts.length !== posts.length) {
                     posts = newPosts;
+                    console.log(`Polled ${newPosts.length} new posts`);
                     renderPosts();
                     updateCategoryCounts();
                 }
             }
         } catch (error) {
+            console.error('Polling error:', error);
             checkForLocalUpdates();
         }
     }, 3000);
@@ -479,6 +510,7 @@ function checkForLocalUpdates() {
         const storedPosts = JSON.parse(stored);
         if (storedPosts.length !== posts.length) {
             posts = storedPosts;
+            console.log(`Local update: ${posts.length} posts`);
             renderPosts();
             updateCategoryCounts();
         }
@@ -488,19 +520,26 @@ function checkForLocalUpdates() {
 // Delete post function
 async function deletePost(postId) {
     try {
+        console.log(`Sending DELETE request to /api/delete/${postId}`);
         const response = await fetch(`/api/delete/${postId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         if (response.ok) {
-            posts = posts.filter(post => post.id != postId);
+            console.log(`Post ${postId} deleted successfully from server`);
+            posts = posts.filter(post => post.id !== postId);
+            saveToLocalStorage();
             renderPosts();
             updateCategoryCounts();
             showNotification('Post deleted successfully!', 'success');
         } else {
-            throw new Error('Failed to delete post');
+            const errorText = await response.text();
+            throw new Error(`Failed to delete post: ${response.status} ${response.statusText} - ${errorText}`);
         }
     } catch (error) {
         console.error('Error deleting post:', error);
-        showNotification('Failed to delete post. Please try again.', 'error');
+        showNotification(`Failed to delete post: ${error.message}`, 'error');
     }
 }
