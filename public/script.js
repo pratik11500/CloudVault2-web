@@ -258,11 +258,11 @@ function renderPosts() {
                 ${escapeHtml(post.description || post.message || 'No description')}
             </div>
             ${post.link ? `
-    <a href="${escapeHtml(post.link)}" class="post-link" target="_blank" rel="noopener noreferrer">
-        <i class="fas fa-link"></i>
-        <span class="link-text">${escapeHtml(post.link)}</span>
-    </a>
-` : ''}
+                <a href="${escapeHtml(post.link)}" class="post-link" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-link"></i>
+                    <span class="link-text">${escapeHtml(post.link)}</span>
+                </a>
+            ` : ''}
             <div class="post-footer">
                 <div class="post-tag tag-${post.tag}">${post.tag}</div>
                 <div class="post-time">${formatTime(post.timestamp)}</div>
