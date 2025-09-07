@@ -1,7 +1,7 @@
 // Import required dependencies for the server
 const express = require('express'); // Web framework for Node.js
 const path = require('path'); // Utility for handling file paths
-const axios = require('axios'); // HTTP client for Discord API calls
+const axios = require('axios'); // HTTP client for Discord webhook calls
 const { Pool } = require('pg'); // PostgreSQL client for database storage
 
 // Initialize Express app
@@ -71,34 +71,26 @@ async function saveMessage(post) {
     }
 }
 
-// Discord channel configuration
-// REPLACE THESE IDs with the correct text channel IDs from your Discord server
-// Find channels under category ID 1395377920557711421, right-click each channel, and select "Copy ID"
-// Copy IDs from main.py (Render) if Discord-to-website syncing works
-// Ensure the bot has "View Channels" and "Send Messages" permissions for each channel
-const CATEGORY_CHANNELS = {
-    'Entertainment': 1413856614510755880,
-    'Education': 1413881799322636319,
-    'Website': 1413881852451885266,
-    'Hack': 1413881887428055193,
-    'Others': 1413881920248615143
+// Discord webhook configuration
+// REPLACE THESE with the correct webhook URLs for each channel
+// In Discord: Right-click each channel under category ID 1395377920557711421 > Edit Channel > Integrations > Create Webhook > Copy Webhook URL
+// Webhooks don’t require bot permissions and avoid "Unknown Channel" errors
+const CATEGORY_WEBHOOKS = {
+    'Entertainment': 'https://discord.com/api/webhooks/1414117488937013298/rYta0R32ltZkdKjpx-Vg3ME3FNH5PhxyjZdBYw3NbTovWwudlzmEvzTtKLlcazbd4_7T', // REPLACE with webhook URL for #entertainment
+    'Education': 'https://discord.com/api/webhooks/1414118255991455784/Vz2v4bg-i2RqXovl7khA-Rgb2F8WrB6fktlCZmMA3O_3Gt0b3CUOlI4IM5i14QO-a2Fa', // REPLACE with webhook URL for #education
+    'Website': 'https://discord.com/api/webhooks/1414118347510906902/UI7ZWDu4jvSiIsYnmegDy8bWjDTsm9JQr_jIWd8MNAV5x3uPCY3UoK-ycrOpL3-vRBrn',   // REPLACE with webhook URL for #website
+    'Hack': 'https://discord.com/api/webhooks/1414118359670329398/lbIuR0RYz4CUqHShxx0w0p1r3bIOzJZZAd6-z8vaTGjWK0QWpE38s9YWidCGVj7OSrdc',      // REPLACE with webhook URL for #hack
+    'Others': 'https://discord.com/api/webhooks/1414118363361185854/y9VC0T6r00yHPO4x0qBLEaAhPn_OEJu8obIbg9Hbvbf7xlJSmWTFZC0JwCYo5Tm5c3c-'     // REPLACE with webhook URL for #others
 };
 
-// Send post to Discord channel via API
+// Send post to Discord channel via webhook
 async function sendToDiscordChannel(postData) {
     const { topic, description, link, tag } = postData;
-    const channelId = CATEGORY_CHANNELS[tag];
+    const webhookUrl = CATEGORY_WEBHOOKS[tag];
     
-    // Validate channel ID
-    if (!channelId) {
-        console.error(`❌ No Discord channel configured for category: ${tag}`);
-        return false;
-    }
-
-    // Validate Discord token
-    const discordToken = process.env.DISCORD_TOKEN;
-    if (!discordToken) {
-        console.error('❌ DISCORD_TOKEN environment variable is not set');
+    // Validate webhook URL
+    if (!webhookUrl) {
+        console.error(`❌ No Discord webhook configured for category: ${tag}`);
         return false;
     }
 
@@ -108,44 +100,26 @@ async function sendToDiscordChannel(postData) {
         messageContent += `\n${link}`;
     }
 
-    // Retry logic for Discord API rate limits
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`Attempting to send post to Discord channel ${channelId} (attempt ${attempt}/${maxRetries})`);
-            const response = await axios.post(
-                `https://discord.com/api/v10/channels/${channelId}/messages`,
-                { content: messageContent },
-                {
-                    headers: {
-                        'Authorization': `Bot ${discordToken}`,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 10000
-                }
-            );
-            console.log(`✅ Successfully sent post to Discord channel #${tag}: [${tag}] ${topic || description}`);
-            return true;
-        } catch (error) {
-            const errorDetails = error.response?.data || error.message;
-            console.error(`❌ Failed to send to Discord (attempt ${attempt}/${maxRetries}):`, errorDetails);
-            if (error.response?.status === 429 && attempt < maxRetries) {
-                const retryAfter = (error.response.data.retry_after * 1000) || 1000;
-                console.log(`Rate limited, retrying after ${retryAfter}ms`);
-                await new Promise(resolve => setTimeout(resolve, retryAfter));
-                continue;
+    // Send message via webhook
+    try {
+        console.log(`Attempting to send post to Discord webhook for category ${tag}`);
+        const response = await axios.post(
+            webhookUrl,
+            { content: messageContent },
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000
             }
-            if (error.response?.status === 401) {
-                console.error('❌ Invalid DISCORD_TOKEN');
-            } else if (error.response?.status === 403) {
-                console.error(`❌ Bot lacks permissions to send messages to channel ${channelId}`);
-            } else if (error.response?.data?.code === 10003) {
-                console.error(`❌ Channel ${channelId} does not exist or is inaccessible`);
-            }
-            return false;
-        }
+        );
+        console.log(`✅ Successfully sent post to Discord channel #${tag}: [${tag}] ${topic || description}`);
+        return true;
+    } catch (error) {
+        const errorDetails = error.response?.data || error.message;
+        console.error(`❌ Failed to send to Discord webhook for ${tag}:`, errorDetails);
+        return false;
     }
-    return false;
 }
 
 // Process Discord queue to send posts
@@ -223,7 +197,7 @@ app.post('/api/upload', async (req, res) => {
         const logMessage = topic ? `[${tag}] ${topic}` : `[${tag}] ${description || message}`;
         console.log(`New post added: ${logMessage}`);
 
-        // Queue website posts for Discord
+        // Queue website posts for Discord via webhook
         if (source === 'website') {
             console.log(`Adding website post to Discord queue: ${logMessage}`);
             discordQueue.push(newPost);
