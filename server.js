@@ -80,7 +80,7 @@ const CATEGORY_WEBHOOKS = {
     'Education': 'https://discord.com/api/webhooks/1416999637600047265/UIk_k6BDxloVmEhsLs1J1sD8xC1RwopoFV5_iDhaLZ7JCgWArw3kSBeUoSkVC0kRe_0S', // REPLACE with webhook URL for #education
     'Website': 'https://discord.com/api/webhooks/1416999733922103306/ryc_9x6OuurOmiPCJkxFVb2ZbFKcgqkmD4hgMKMAt4Tl_9aGdBkHXwGxQ2gTC_M8e3SJ',   // REPLACE with webhook URL for #website
     'Hack': 'https://discord.com/api/webhooks/1416999741627170836/hAulCHY6EIbo2UF9pdIrubhYdWQiCqf09mA3AhrJ8jKxF_-GeD7eGN_KXlYaSyM4DA8f',      // REPLACE with webhook URL for #hack
-    'Others': 'https://discord.com/api/webhooks/1416999742390665268/TYbwuxRX1u0c0dgCYyPMfnw1AoyVEjDE8KV4358OElytsMWlKhH78G8nCIgx22Bm96dN'     // REPLACE with webhook URL for #others
+    'Others': 'https://discord.com/api/webhooks/1417004134107840673/UoR4fkl5IacYwCi8KQFoVcFUvcAnDQkB9PrX1ROttkYl6yY_54N_AnXDhSqCuyq2Ya6h'     // REPLACE with webhook URL for #others
 };
 
 // Send post to Discord channel via webhook
