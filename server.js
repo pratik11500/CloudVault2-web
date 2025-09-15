@@ -76,11 +76,11 @@ async function saveMessage(post) {
 // In Discord: Right-click each channel under category ID 1395377920557711421 > Edit Channel > Integrations > Create Webhook > Copy Webhook URL
 // Webhooks don’t require bot permissions and avoid "Unknown Channel" errors
 const CATEGORY_WEBHOOKS = {
-    'Entertainment': 'https://discord.com/api/webhooks/1414117488937013298/rYta0R32ltZkdKjpx-Vg3ME3FNH5PhxyjZdBYw3NbTovWwudlzmEvzTtKLlcazbd4_7T', // REPLACE with webhook URL for #entertainment
-    'Education': 'https://discord.com/api/webhooks/1414118255991455784/Vz2v4bg-i2RqXovl7khA-Rgb2F8WrB6fktlCZmMA3O_3Gt0b3CUOlI4IM5i14QO-a2Fa', // REPLACE with webhook URL for #education
-    'Website': 'https://discord.com/api/webhooks/1414118347510906902/UI7ZWDu4jvSiIsYnmegDy8bWjDTsm9JQr_jIWd8MNAV5x3uPCY3UoK-ycrOpL3-vRBrn',   // REPLACE with webhook URL for #website
-    'Hack': 'https://discord.com/api/webhooks/1414118359670329398/lbIuR0RYz4CUqHShxx0w0p1r3bIOzJZZAd6-z8vaTGjWK0QWpE38s9YWidCGVj7OSrdc',      // REPLACE with webhook URL for #hack
-    'Others': 'https://discord.com/api/webhooks/1414118363361185854/y9VC0T6r00yHPO4x0qBLEaAhPn_OEJu8obIbg9Hbvbf7xlJSmWTFZC0JwCYo5Tm5c3c-'     // REPLACE with webhook URL for #others
+    'Entertainment': 'https://discord.com/api/webhooks/1416999467474747513/dg40beMMiIyAeJvhFO9RX2DYRJx5jZP4e-SZw9O9i8-fblItE3-dBAWePIPLY3nKUv1h', // REPLACE with webhook URL for #entertainment
+    'Education': 'https://discord.com/api/webhooks/1416999637600047265/UIk_k6BDxloVmEhsLs1J1sD8xC1RwopoFV5_iDhaLZ7JCgWArw3kSBeUoSkVC0kRe_0S', // REPLACE with webhook URL for #education
+    'Website': 'https://discord.com/api/webhooks/1416999733922103306/ryc_9x6OuurOmiPCJkxFVb2ZbFKcgqkmD4hgMKMAt4Tl_9aGdBkHXwGxQ2gTC_M8e3SJ',   // REPLACE with webhook URL for #website
+    'Hack': 'https://discord.com/api/webhooks/1416999741627170836/hAulCHY6EIbo2UF9pdIrubhYdWQiCqf09mA3AhrJ8jKxF_-GeD7eGN_KXlYaSyM4DA8f',      // REPLACE with webhook URL for #hack
+    'Others': 'https://discord.com/api/webhooks/1416999742390665268/TYbwuxRX1u0c0dgCYyPMfnw1AoyVEjDE8KV4358OElytsMWlKhH78G8nCIgx22Bm96dN'     // REPLACE with webhook URL for #others
 };
 
 // Send post to Discord channel via webhook
